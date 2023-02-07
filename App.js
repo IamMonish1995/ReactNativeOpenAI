@@ -1,24 +1,108 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View ,TouchableOpacity} from 'react-native';
-import { Button,Colors } from 'react-native-ui-lib';
-
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <TouchableOpacity onPress={() => console.log('pressed')}>
-      <Button label={'Press'} size={Button.sizes.medium} backgroundColor={Colors.red30}/>
-      </TouchableOpacity>
-      <StatusBar style="auto" />
-    </View>
-  );
-}
+import React, { useState } from "react";
+import {
+  View,
+  TextInput,
+  FlatList,
+  Button,
+  StyleSheet,
+  Text,
+} from "react-native";
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#fff",
+    padding: 10,
+  },
+  messageList: {
+    flex: 1,
+  },
+  messageContainer: {
+    padding: 10,
+    marginVertical: 5,
+    backgroundColor: "#eee",
+    borderRadius: 5,
+  },
+  messageText: {
+    fontSize: 16,
+  },
+  botMessage: {
+    color: "blue",
+  },
+  userMessage: {
+    color: "black",
+    textAlign: "right",
+  },
+  inputContainer: {
+    flexDirection: "row",
+    padding: 10,
+  },
+  input: {
+    flex: 1,
+    padding: 10,
+    backgroundColor: "#eee",
+    borderRadius: 5,
+    marginRight: 10,
   },
 });
+
+export default function App() {
+  const [inputValue, setInputValue] = useState("");
+  const [messages, setMessages] = useState([]);
+
+  const sendMessage = async () => {
+    const response = await fetch("https://openai-sx54.onrender.com", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message: inputValue,
+      }),
+    });
+
+    console.log(response.json())
+
+    // Implement the API call to send user input to the ChatGPT model
+    // and receive the response
+    // For example:
+    // const response = await sendInputToChatGptApi(inputValue);
+
+    // For the sake of this example, let's just pretend we have the response
+    // const response = "This is a sample response from the ChatGPT model.";
+
+    setMessages([...messages, { author: "bot", text: response.bot }]);
+    setInputValue("");
+  };
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={messages}
+        renderItem={({ item }) => (
+          <View style={styles.messageContainer}>
+            <Text
+              style={[
+                styles.messageText,
+                item.author === "bot" ? styles.botMessage : styles.userMessage,
+              ]}
+            >
+              {item.text}
+            </Text>
+          </View>
+        )}
+        keyExtractor={(item, index) => index.toString()}
+        style={styles.messageList}
+      />
+      <View style={styles.inputContainer}>
+        <TextInput
+          value={inputValue}
+          onChangeText={(text) => setInputValue(text)}
+          style={styles.input}
+        />
+        <Button title="Send" onPress={sendMessage} />
+      </View>
+    </View>
+  );
+}
